@@ -26,21 +26,18 @@ def draw_circle_scad(r,**kwargs):
     cuts = []
     if 'cuts' in kwargs:
         cuts = kwargs['cuts']
-    retval = solid2.circle(r=r)
-    retval -= solid2.circle(r=r-.1)
-    
+    retval = solid2.cylinder(r=r, h=1)
+    retval -= solid2.cylinder(r=r-.1, h=1)
     for cut in cuts:
         re = 2*r
         xa = re*np.cos(np.pi*cut[0]/180.) 
         ya = re*np.sin(np.pi*cut[0]/180.)
         xb = re*np.cos(np.pi*cut[1]/180.) 
         yb = re*np.sin(np.pi*cut[1]/180.)
-        retval -= solid2.polygon([(0,0),(xa,ya),(xb,yb)])
+        retval -= solid2.linear_extrude(2,center=True)(solid2.polygon([(0,0),(xa,ya),(xb,yb)]))
+    retval = solid2.down(.5)(retval) 
     return retval
-
-        
-                     
-    return rtval
+    
 
 def draw_labyrinth_svg(n_circ):
     solid2.set_global_fn(500);
@@ -68,10 +65,13 @@ def draw_labyrinth_scad(n_circ):
             retval += draw_circle_scad(i, cuts=[(0, cut_ang), (360-cut_ang,360)])
     retval += solid2.down(.5)(solid2.right(1)(solid2.cube([n_circ-2,.1,1])))
     retval += solid2.down(.5)(solid2.right(1.8)(solid2.forward(1)(solid2.cube([n_circ-3,.1,1]))))
-    #plt.plot([2,n_circ-1],[1,1])
     return retval
-    #plt.gca().set_aspect('equal')
-    #plt.savefig('foo.svg')
+    
 if __name__ == '__main__':
     print('hello')
-    solid2.minkowski()(draw_labyrinth_scad(7),solid2.sphere(.1)).save_as_scad()
+    
+    smooth = False
+    if smooth:
+        solid2.minkowski()(draw_labyrinth_scad(7),solid2.sphere(.1)).save_as_scad()
+    else:
+        draw_labyrinth_scad(7).save_as_scad()
